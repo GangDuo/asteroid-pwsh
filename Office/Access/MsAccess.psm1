@@ -87,3 +87,33 @@ function Get-MsAccessERInfo {
     # 返り値はDataset
     return [DataSet]$dataSet
 }
+
+<#
+.SYNOPSIS
+
+.EXAMPLE
+using namespace  System.Data.OleDb
+
+Use-OleDbConnection -ScriptBlock {param([OleDbConnection]$connection)
+    $cmd = [OleDbCommand]::new("DELETE FROM table_name", $connection)
+    $cmd.ExecuteNonQuery()
+} -File .\sample.accdb
+
+#>
+function Use-OleDbConnection {
+    param($ScriptBlock, $File)
+
+    try {
+        [OleDbConnection]$connection = New-MsAccessConnection $File
+        $connection.Open()
+
+        Invoke-Command $ScriptBlock -ArgumentList $connection
+    } catch {
+        $PSCmdlet.ThrowTerminatingError($_)
+    } finally {
+        if ($connection) {
+            $connection.Close()
+            $connection.Dispose()
+        }  
+    }
+}
