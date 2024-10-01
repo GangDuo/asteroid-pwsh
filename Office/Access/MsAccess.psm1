@@ -94,20 +94,21 @@ function Get-MsAccessERInfo {
 .EXAMPLE
 using namespace  System.Data.OleDb
 
-Use-OleDbConnection -ScriptBlock {param([OleDbConnection]$connection)
+Use-OleDbConnection -ScriptBlock {param([OleDbConnection]$connection, $Options)
+    Write-Host $Options.prop
     $cmd = [OleDbCommand]::new("DELETE FROM table_name", $connection)
     $cmd.ExecuteNonQuery()
-} -File .\sample.accdb
+} -File .\sample.accdb -Options @{ prop = 1}
 
 #>
 function Use-OleDbConnection {
-    param($ScriptBlock, $File)
+    param($ScriptBlock, $File, $Options)
 
     try {
         [OleDbConnection]$connection = New-MsAccessConnection $File
         $connection.Open()
 
-        Invoke-Command $ScriptBlock -ArgumentList $connection
+        Invoke-Command $ScriptBlock -ArgumentList $connection, $Options
     } catch {
         $PSCmdlet.ThrowTerminatingError($_)
     } finally {
